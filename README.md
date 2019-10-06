@@ -1,4 +1,4 @@
-# @jswf/bfs Backend function system
+# @jswf/rfs Remote function system
 
 ## 用途
 
@@ -6,7 +6,7 @@
 
 ## 現在の状態
 
-色々調整中です
+[ドキュメント](https://ttis.croud.jp/?uuid=71ba22b3-2a2f-493b-aa25-e6ffa21c7f72)
 
 ## ライセンス
 

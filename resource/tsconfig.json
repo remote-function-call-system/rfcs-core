@@ -1,0 +1,6 @@
+{
+	"references": [
+		{"path": "./src/back"}
+	],
+	"exclude": ["."]
+}

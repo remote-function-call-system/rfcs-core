@@ -2,6 +2,66 @@ import { Manager } from "./Manager";
 import { Session } from "./Session";
 import * as express from "express";
 
+import "reflect-metadata"; //npmから追加インストールの必要あり
+
+//型のチェック
+function isType(type: object, value: unknown) {
+  switch (type) {
+    case Number:
+      if (typeof value !== "number") return false;
+      break;
+    case String:
+      if (typeof value !== "string") return false;
+      break;
+    case Boolean:
+      if (typeof value !== "boolean") return false;
+      break;
+    case Array:
+      if (!(value instanceof Array)) return false;
+      break;
+    case Function:
+      if (!(value instanceof Function)) return false;
+      break;
+  }
+  return true;
+}
+//型チェック用デコレータ
+export function EXPORT(
+  target: any,
+  name: string,
+  descriptor: PropertyDescriptor
+) {
+  const ptypes = Reflect.getMetadata(
+    "design:paramtypes",
+    target,
+    name
+  ) as object[];
+  const rtype = Reflect.getMetadata(
+    "design:returntype",
+    target,
+    name
+  ) as object[];
+  const result = {
+    ...descriptor,
+    value: function(...params: unknown[]) {
+      if (ptypes.length !== params.length) throw "Invalid number of arguments";
+      const flag = ptypes.reduce((a, b, index) => {
+        return a && isType(b, params[index]);
+      }, true);
+      if (!flag) {
+        throw "Invalid argument type";
+      }
+      const result = descriptor.value.apply(this, params);
+      if (!isType(rtype, result)) throw "Invalid return type";
+      return result;
+    }
+  };
+  (result.value as typeof result.value & {
+    RFS_EXPORT: boolean;
+  }).RFS_EXPORT = true;
+  return result;
+}
+
 export interface ModuleInfo {
   className?: string;
   name: string;
@@ -25,8 +85,8 @@ export class Module<T extends ModuleMap = ModuleMap> {
   public static Module: boolean = true;
   private manager: Manager;
   private session: Session | null = null;
-  public static getLocalEntitys():unknown[]{
-    return []
+  public static getLocalEntitys(): unknown[] {
+    return [];
   }
   /**
    *モジュールの情報を返す
@@ -109,7 +169,7 @@ export class Module<T extends ModuleMap = ModuleMap> {
     const listener = this.listeners[name];
     if (listener) {
       for (const proc of listener) {
-        (proc as ((...params: T[K]) => unknown))(...params);
+        (proc as (...params: T[K]) => unknown)(...params);
       }
     }
   }
@@ -161,7 +221,7 @@ export class Module<T extends ModuleMap = ModuleMap> {
    * @returns {express.Response}
    * @memberof Module
    */
-  public getResponse():express.Response{
+  public getResponse(): express.Response {
     return this.getSession().getResponse();
   }
   /**
@@ -172,7 +232,7 @@ export class Module<T extends ModuleMap = ModuleMap> {
    */
   public getSession(): Session {
     if (!this.session) throw "Session Error";
-      //return null as unknown as Session;
+    //return null as unknown as Session;
     return this.session;
   }
   /**
@@ -181,9 +241,8 @@ export class Module<T extends ModuleMap = ModuleMap> {
    * @param {boolean} flag
    * @memberof Module
    */
-  public setReturn(flag:boolean){
-    if(this.session)
-      this.session.setDefaultReturn(flag);
+  public setReturn(flag: boolean) {
+    if (this.session) this.session.setDefaultReturn(flag);
   }
   /**
    *
@@ -287,7 +346,7 @@ export class Module<T extends ModuleMap = ModuleMap> {
    */
   public getSessionModule<T extends Module>(constructor: {
     new (manager: Manager): T;
-  }):T {
+  }): T {
     return this.getSession().getModule(constructor);
   }
 
@@ -313,10 +372,10 @@ export class Module<T extends ModuleMap = ModuleMap> {
    * @param {boolean} flag true:通常 false:カスタマイズ
    * @memberof Module
    */
-  public setDefaultReturn(flag:boolean){
+  public setDefaultReturn(flag: boolean) {
     this.getSession().setDefaultReturn(flag);
   }
-  public getLocalDB(){
+  public getLocalDB() {
     return this.manager.getLocalDB();
   }
 }

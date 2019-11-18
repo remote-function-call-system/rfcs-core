@@ -1,4 +1,4 @@
-import * as uuid from "uuid/v4";
+import * as uuid from "uuid";
 import * as typeorm from "typeorm";
 
 @typeorm.Entity()
@@ -66,7 +66,7 @@ export class SessionRepository extends typeorm.Repository<SessionEntity> {
    * @memberof LocalDB
    */
   public async createSession(type: string): Promise<string> {
-    let id: string | null = uuid();
+    let id: string | null = uuid.v4();
 
     do {
       const result = await this.findOne({ id: id as string, type });

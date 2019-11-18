@@ -20,7 +20,7 @@ import { ConnectionOptions } from "typeorm";
  */
 export interface ManagerParams {
   modulePath: string;
-  debug?:number;
+  debug?: number;
   databaseOption?: ConnectionOptions;
 }
 interface AdapterFormat {
@@ -32,7 +32,6 @@ interface AdapterFormat {
     params: unknown[]; //パラメータ
   }[];
 }
-
 
 interface ManagerMap {
   message: [unknown];
@@ -59,57 +58,6 @@ export class Manager {
   private commands: {
     [key: string]: (req: express.Request, res: express.Response) => void;
   } = {};
-
-  /**
-   *Creates an instance of Manager.
-   * @memberof Manager
-   */
-  public constructor(params: ManagerParams) {
-    this.debug = params.debug || 0;
-    //モジュールを読み出す
-    const modulesType = this.loadModule(params.modulePath);
-    this.modulesType = modulesType;
-
-    //非同期初期化処理
-    (async () => {
-      //モジュールの初期化
-      for (const name of Object.keys(modulesType)) {
-        if (!(await this.getModule(name))) process.exit(-10);
-      }
-
-      //DB設定が無ければメモリ上に作成
-      const databaseOption: ConnectionOptions = params.databaseOption || {
-        type: "sqlite",
-        database: ":memory:"
-      };
-
-      if (!(await this.localDB.open(databaseOption))) {
-        // eslint-disable-next-line no-console
-        console.error(
-          "ローカルDBオープンエラー:%s(%s)",
-          databaseOption.type,
-          databaseOption.database
-        );
-        process.exit(-10);
-      }
-
-      //モジュールの初期化2
-      for (const m of this.modulesList) {
-        if (m.onCreatedModule) await m.onCreatedModule();
-      }
-
-      // //Expressの初期化
-      // await this.initExpress(params);
-      Manager.initFlag = true;
-
-      // if (params.test) {
-      //   //モジュールのテスト
-      //   for (const m of Object.values(this.modulesInstance)) {
-      //     if (m.onTest) m.onTest();
-      //   }
-      // }
-    })();
-  }
 
   /**
    *モジュール対応イベントの追加
@@ -170,7 +118,7 @@ export class Manager {
     const listener = this.listeners[name];
     if (listener) {
       for (const proc of listener) {
-        (proc as ((...params: ManagerMap[keyof ManagerMap]) => unknown))(
+        (proc as (...params: ManagerMap[keyof ManagerMap]) => unknown)(
           ...params
         );
       }
@@ -332,54 +280,96 @@ export class Manager {
    * @param {string} path				ドキュメントのパス
    * @memberof Manager
    */
-  public init(exp: Express, path: string) {
-    const commands = this.commands;
-    commands.exec = (req: express.Request, res: express.Response): void => {
-      this.exec(req, res);
-    };
-    commands.upload = (req: express.Request, res: express.Response): void => {
-      this.upload(req, res);
-    };
+  public init(
+    params: ManagerParams,
+    exp: Express,
+    path: string
+  ): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      this.debug = params.debug || 0;
+      //モジュールを読み出す
+      const modulesType = this.loadModule(params.modulePath);
+      this.modulesType = modulesType;
 
-    exp.options("*", function(req, res) {
-      res.header("Access-Control-Allow-Headers", "content-type");
-      res.sendStatus(200);
-      res.end();
-    });
-    //バイナリファイルの扱い設定
-    exp.use(
-      bodyParser.raw({ type: "application/octet-stream", limit: "300mb" })
-    );
-    exp.use(bodyParser.json({ type: "application/json", limit: "3mb" }));
-    //クライアント接続時の処理
-    exp.all(
-      path,
-      async (
-        req: express.Request,
-        res: express.Response,
-        next
-      ): Promise<void> => {
-        //初期化が完了しているかどうか
-        if (!Manager.initFlag) {
-          res.header("Content-Type", "text/plain; charset=utf-8");
-          res.end(this.stderr);
-          return;
-        }
-        //コマンドパラメータの解析
-        const cmd = req.query.cmd as string;
-        if (cmd != null) {
-          const command = commands[cmd];
-          if (command != null) {
-            command(req, res);
-          } else {
-            res.json({ error: "リクエストエラー" });
-            res.end();
-          }
-        } else {
-          next();
-        }
+      //モジュールの初期化
+      for (const name of Object.keys(modulesType)) {
+        if (!(await this.getModule(name))) process.exit(-10);
       }
-    );
+
+      //DB設定が無ければメモリ上に作成
+      const databaseOption: ConnectionOptions = params.databaseOption || {
+        type: "sqlite",
+        database: ":memory:"
+      };
+
+      if (!(await this.localDB.open(databaseOption))) {
+        // eslint-disable-next-line no-console
+        console.error(
+          "ローカルDBオープンエラー:%s(%s)",
+          databaseOption.type,
+          databaseOption.database
+        );
+        reject(
+          `ローカルDBオープンエラー:${databaseOption.type}${databaseOption.database}`
+        );
+      }
+
+      //モジュールの初期化2
+      for (const m of this.modulesList) {
+        if (m.onCreatedModule) await m.onCreatedModule();
+      }
+
+      Manager.initFlag = true;
+
+      const commands = this.commands;
+      commands.exec = (req: express.Request, res: express.Response): void => {
+        this.exec(req, res);
+      };
+      commands.upload = (req: express.Request, res: express.Response): void => {
+        this.upload(req, res);
+      };
+
+      exp.options("*", function(req, res) {
+        res.header("Access-Control-Allow-Headers", "content-type");
+        res.sendStatus(200);
+        res.end();
+      });
+      //バイナリファイルの扱い設定
+      exp.use(
+        bodyParser.raw({ type: "application/octet-stream", limit: "300mb" })
+      );
+      exp.use(bodyParser.json({ type: "application/json", limit: "3mb" }));
+      //クライアント接続時の処理
+      exp.all(
+        path,
+        async (
+          req: express.Request,
+          res: express.Response,
+          next
+        ): Promise<void> => {
+          //初期化が完了しているかどうか
+          if (!Manager.initFlag) {
+            res.header("Content-Type", "text/plain; charset=utf-8");
+            res.end(this.stderr);
+            return;
+          }
+          //コマンドパラメータの解析
+          const cmd = req.query.cmd as string;
+          if (cmd != null) {
+            const command = commands[cmd];
+            if (command != null) {
+              command(req, res);
+            } else {
+              res.json({ error: "リクエストエラー" });
+              res.end();
+            }
+          } else {
+            next();
+          }
+        }
+      );
+      resolve();
+    });
   }
 
   /**
@@ -422,7 +412,7 @@ export class Manager {
       const params = req.query.params;
       try {
         const values = JSON.parse(params);
-        if (params) this.excute(res, values, req.body);
+        if (params) this.execute(res, values, req.body);
       } catch (e) {
         res.status(500);
         res.end("500 error");
@@ -440,7 +430,7 @@ export class Manager {
    */
   private exec(req: express.Request, res: express.Response): void {
     if (req.header("content-type") === "application/json") {
-      this.excute(res, req.body);
+      this.execute(res, req.body);
     } else {
       let postData = "";
       req
@@ -450,7 +440,7 @@ export class Manager {
         .on("end", (): void => {
           try {
             const values = JSON.parse(postData);
-            this.excute(res, values);
+            this.execute(res, values);
           } catch (e) {
             res.status(500);
             res.end("500 error");
@@ -462,14 +452,14 @@ export class Manager {
   /**
    *クライアントからの処理要求を実行
    *
-   * @private
+   * @public
    * @param {express.Response} res
    * @param {AdapterFormat} params
    * @param {Buffer} [buffer]
    * @returns {Promise<void>}
    * @memberof Manager
    */
-  private async excute(
+  public async execute(
     res: express.Response,
     params: AdapterFormat,
     buffer?: Buffer
@@ -526,10 +516,10 @@ export class Manager {
           continue;
         }
         //ファンクション名にプレフィックスを付ける
-        const funcName = "JS_" + name[1];
+        const funcName = name[1];
         //ファンクションを取得
-        const funcPt = classPt[funcName as keyof Module] as Function | null;
-        if (!funcPt) {
+        const funcPt = classPt[funcName as keyof Module] as Function &{RFS_EXPORT?:boolean}| null;
+        if (!funcPt || !funcPt.RFS_EXPORT) {
           result.error = util.format("命令が存在しない: %s", func.function);
           continue;
         }
@@ -537,13 +527,15 @@ export class Manager {
           result.error = util.format("パラメータ書式エラー: %s", func.function);
           continue;
         }
-        if (funcPt.length !== func.params.length) {
-          result.error = util.format(
-            "パラメータの数が一致しない: %s",
-            func.function
-          );
-          continue;
-        }
+        // if (funcPt.length !== func.params.length) {
+        //   result.error = util.format(
+        //     "パラメータの数が一致しない: %s %d %d",
+        //     func.function,
+        //     funcPt.length,
+        //     func.params.length
+        //   );
+        //   continue;
+        // }
         //命令の実行
         try {
           if (this.debug)
@@ -570,8 +562,8 @@ export class Manager {
     //クライアントに返すデータを設定
     if (session.isReturn()) {
       res.json(session.result).on("error", () => {});
-      res.end();
     }
+    res.end();
   }
 
   /**

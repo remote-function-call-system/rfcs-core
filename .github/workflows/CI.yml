@@ -1,0 +1,40 @@
+name: CI
+on:
+  push:
+
+jobs:
+  release:
+    name: check version, add tag and release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: cache node_modules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: xbrowser-yarn-${{ hashFiles('**\yarn.lock') }}
+          restore-keys: |
+            xbrowser-yarn-
+      - name: install
+        run: yarn install
+      - name: build
+        run: yarn build
+      - name: version devel
+        uses: SoraKumo001/actions-package-version-prefix@release
+        if: contains(github.ref, 'tags/dev')
+        with:
+          prefix: -devel
+      - name: publish devel
+        if: contains(github.ref, 'tags/dev')
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN
+          npm publish --tag=devel
+      - name: publish release
+        if: contains(github.ref, 'tags/v')
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN
+          npm publish

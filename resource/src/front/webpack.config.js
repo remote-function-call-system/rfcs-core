@@ -4,12 +4,10 @@ const TerserPlugin = require("terser-webpack-plugin");
 const htmlWebpackPlugin = require('html-webpack-plugin');
 const config = {
   mode: "production",
-  entry: [path.resolve(__dirname, "src/front/index.ts")].concat(
-    glob.sync("./src/front/**/*.auto.ts")
-  ),
+  entry: [path.resolve(__dirname, "./index.ts")],
   output: {
     filename: "js/bundle.js",
-    path: path.resolve(__dirname, "dist/public")
+    path: path.resolve(__dirname, "../../dist/public")
   },
   module: {
     rules: [
@@ -53,7 +51,7 @@ const config = {
   },
   plugins: [
     new htmlWebpackPlugin({
-      template: path.resolve(__dirname, "template/index.html")
+      template: path.resolve(__dirname, "../template/index.html")
     })
   ]
 };

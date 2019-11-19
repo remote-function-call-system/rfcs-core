@@ -1,4 +1,4 @@
-import {Module} from "@jswf/rfs";
+import {Module, EXPORT} from "@jswf/rfs";
 
 /**
  *テストモジュール
@@ -8,7 +8,8 @@ import {Module} from "@jswf/rfs";
  * @extends {amf.Module}
  */
 export class TestModule extends Module {
-  async JS_add(a: number, b: number) {
+  @EXPORT //このデコレータを付けると外部公開される
+  async add(a: number, b: number) {
     return a + b;
   }
 }

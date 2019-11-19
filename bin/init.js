@@ -12,12 +12,13 @@ let config = JSON.parse(fs.readFileSync("package.json"));
 config.scripts = {
   ...config.scripts,
   ...{
-    start: "node --preserve-symlinks dist/app/index.js",
+    "start": "node --preserve-symlinks dist/app/index.js",
+    "test": "node --preserve-symlinks dist/app/index.js --test",
     "build:all": "npm run build:back && npm run build:front",
-    "watch:front": "npx webpack -b -w --mode development",
-    "build:front": "npx webpack -b",
-    "watch:back": "npx tsc -b -w ",
-    "build:back": "npx tsc -b "
+    "watch:front": "webpack -b -w --mode development",
+    "build:front": "webpack -b",
+    "watch:back": "tsc -b -w ",
+    "build:back": "tsc -b "
   }
 };
 fs.writeFileSync("package.json", JSON.stringify(config, null, "  "), "utf-8");

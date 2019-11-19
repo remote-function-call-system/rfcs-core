@@ -19,6 +19,8 @@ jobs:
         run: yarn install
       - name: build
         run: yarn build
+      - name: test
+        run: yarn test
       - name: version devel
         uses: SoraKumo001/actions-package-version-prefix@release
         if: contains(github.ref, 'tags/dev')

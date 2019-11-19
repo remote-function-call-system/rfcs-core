@@ -18,11 +18,6 @@ import { ConnectionOptions } from "typeorm";
  * @property {string} modulePath	モジュール配置パス
  * @property {boolean} debug		デバッグ用メッセージ出力(0:None 1:Recv 2:Recv/Send)
  */
-export interface ManagerParams {
-  modulePath: string;
-  debug?: number;
-  databaseOption?: ConnectionOptions;
-}
 interface AdapterFormat {
   globalHash: string | null; //ブラウザ共通セッションキー
   sessionHash: string | null; //タブ用セッションキー
@@ -181,14 +176,14 @@ export class Manager {
    * @returns
    * @memberof Manager
    */
-  public loadModule(modulePath: string) {
+  public loadModuleDir(modulePath: string) {
     let modulesType: { [key: string]: typeof Module } = {};
     const files = fs.readdirSync(modulePath);
     for (const file of files) {
       const filePath = path.join(modulePath, file);
       const dir = fs.statSync(filePath).isDirectory();
       if (dir) {
-        modulesType = Object.assign(modulesType, this.loadModule(filePath));
+        modulesType = Object.assign(modulesType, this.loadModuleDir(filePath));
       } else {
         if (file.match(`\(?<=\.(ts|js))(?<!d\.ts)$`)) {
           const r = require(filePath) as { [key: string]: typeof Module };
@@ -205,7 +200,19 @@ export class Manager {
     }
     return modulesType;
   }
-
+  public loadModule(moduleName: string) {
+    let modulesType: { [key: string]: typeof Module } = {};
+    const r = require(moduleName) as { [key: string]: typeof Module };
+    if (r) {
+      for (const name of Object.keys(r)) {
+        const module = r[name];
+        if (module.prototype instanceof Module) {
+          modulesType[name] = module;
+        }
+      }
+    }
+    return modulesType;
+  }
   /**
    *モジュールの取得と新規インスタンスの作成
    *
@@ -277,18 +284,38 @@ export class Manager {
   /**
    *Expressの設定を行う
    *
-   * @param {string} path				ドキュメントのパス
+   * @param {string} dirPath				ドキュメントのパス
    * @memberof Manager
    */
-  public init(
-    params: ManagerParams,
-    exp: Express,
-    path: string
-  ): Promise<void> {
+  public init(params: {
+    modulePath?: string | string[];
+    module?: string | string[];
+    debug?: number;
+    databaseOption?: ConnectionOptions;
+    express: Express;
+    dirPath: string;
+  }): Promise<void> {
     return new Promise(async (resolve, reject) => {
       this.debug = params.debug || 0;
       //モジュールを読み出す
-      const modulesType = this.loadModule(params.modulePath);
+      const modulesType = {
+        ...(!params.modulePath
+          ? {}
+          : params.modulePath instanceof Array
+          ? params.modulePath.reduce<{ [key: string]: typeof Module }>(
+              (a, b) => ({ ...a, ...this.loadModuleDir(b) }),
+              {}
+            )
+          : this.loadModuleDir(params.modulePath)),
+        ...(!params.module
+          ? {}
+          : params.module instanceof Array
+          ? params.module.reduce<{ [key: string]: typeof Module }>(
+              (a, b) => ({ ...a, ...this.loadModule(b) }),
+              {}
+            )
+          : this.loadModule(params.module))
+      };
       this.modulesType = modulesType;
 
       //モジュールの初期化
@@ -329,19 +356,19 @@ export class Manager {
         this.upload(req, res);
       };
 
-      exp.options("*", function(req, res) {
+      params.express.options("*", function(req, res) {
         res.header("Access-Control-Allow-Headers", "content-type");
         res.sendStatus(200);
         res.end();
       });
       //バイナリファイルの扱い設定
-      exp.use(
+      params.express.use(
         bodyParser.raw({ type: "application/octet-stream", limit: "300mb" })
       );
-      exp.use(bodyParser.json({ type: "application/json", limit: "3mb" }));
+      params.express.use(bodyParser.json({ type: "application/json", limit: "3mb" }));
       //クライアント接続時の処理
-      exp.all(
-        path,
+      params.express.all(
+        params.dirPath,
         async (
           req: express.Request,
           res: express.Response,
@@ -518,7 +545,9 @@ export class Manager {
         //ファンクション名にプレフィックスを付ける
         const funcName = name[1];
         //ファンクションを取得
-        const funcPt = classPt[funcName as keyof Module] as Function &{RFS_EXPORT?:boolean}| null;
+        const funcPt = classPt[funcName as keyof Module] as
+          | (Function & { RFS_EXPORT?: boolean })
+          | null;
         if (!funcPt || !funcPt.RFS_EXPORT) {
           result.error = util.format("命令が存在しない: %s", func.function);
           continue;

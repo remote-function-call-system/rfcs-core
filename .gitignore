@@ -1,5 +1,5 @@
 *.tsbuildinfo
 package-lock.json
-/dist
+dist
 node_modules
 .vscode/

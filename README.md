@@ -6,27 +6,43 @@
 
 ## 使い方
 
-- テンプレートの展開  
+- テンプレートの展開
 npx init-rfs
 
-- テンプレートのビルド  
-npm build:all
+- テンプレートのビルド
+npm build
 
-- テンプレートの実行  
+- テンプレートの実行
 npm run
+
+- テストの実行
+npm run test
 
 ## テンプレートのファイル構成
 
-- src
-  - back [バックエンド用ディレクトリ]
-    - index.ts バックエンドスタート用ファイル
-    - modules  [モジュール格納用]
-      - TestModule.ts サンプルモジュール
-  - front [フロントエンド用ディレクトリ]
-    - index.ts フロントエンドスタート用ファイル
-- templte [HTMLテンプレート置き場]
-  - index.html 初期ページ用HTML
-- dest [コンパイル済みファイル出力用ディレクトリ]
+```txt
+.
+│  tsconfig.json バックエンドコンパイル用
+│
+└─src
+    ├─back [バックエンド用ディレクトリ]
+    │  │  index.ts バックエンドスタート用ファイル
+    │  │  tsconfig.json バックエンドコンパイル用
+    │  │
+    │  ├─modules [モジュール格納用]
+    │  │      TestModule.ts サンプルモジュール
+    │  │
+    │  └─test
+    │          index.ts バックエンドテストコード
+    │
+    ├─front [フロントエンド用ディレクトリ]
+    │      index.ts フロントエンドスタート用ファイル
+    │      tsconfig.json フロントエンドコンパイル用
+    │      webpack.config.js フロントエンドビルド用
+    │
+    └─template [HTMLテンプレート置き場]
+            index.html 初期ページ用HTML
+```
 
 ## プログラムの組み方
 
@@ -35,10 +51,18 @@ npm run
 Moduleクラスを継承し、「JS_関数名」というメソッドを作る
 
 ```ts
-import {Module} from "@jswf/rfs";
+import {Module, EXPORT} from "@jswf/rfs";
 
+/**
+ *テストモジュール
+ *
+ * @export
+ * @class TestModule
+ * @extends {Module}
+ */
 export class TestModule extends Module {
-  async JS_add(a: number, b: number) {
+  @EXPORT //このデコレータを付けると外部公開される
+  async add(a: number, b: number) {
     return a + b;
   }
 }
@@ -59,4 +83,4 @@ const result = (await adapter.exec("TestModule.add", a, b)) as number;
 
 ## ライセンス
 
-- MITライセンス  
+- MITライセンス

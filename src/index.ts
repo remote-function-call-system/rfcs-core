@@ -1,5 +1,5 @@
 //モジュールのインポート
-export * from "./lib/LocalDB";
-export * from "./lib/Session";
-export * from "./lib/Manager";
-export * from "./lib/Module";
+export * from "./LocalDB";
+export * from "./Session";
+export * from "./Manager";
+export * from "./Module";

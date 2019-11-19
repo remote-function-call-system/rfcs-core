@@ -232,8 +232,10 @@ export class Module<T extends ModuleMap = ModuleMap> {
    */
   public getSession(): Session {
     if (!this.session) throw "Session Error";
-    //return null as unknown as Session;
     return this.session;
+  }
+  public isSession(): boolean {
+    return !!this.session;
   }
   /**
    *
@@ -319,7 +321,7 @@ export class Module<T extends ModuleMap = ModuleMap> {
   }
 
   /**
-   *セッション情報を含まないモジュールインスタンスの取得
+   *モジュールインスタンスの取得
    *返ってくる値はPromiseなので注意
    * @template T
    * @param {{
@@ -328,15 +330,17 @@ export class Module<T extends ModuleMap = ModuleMap> {
    * @returns {(Promise<T | null>)}
    * @memberof Module
    */
-  public getModule<T extends Module>(constructor: {
+  public async getModule<T extends Module>(constructor: {
     new (manager: Manager): T;
   }): Promise<T> {
-    return this.manager.getModule(constructor);
+    return this.isSession()
+      ? this.getSession().getModule(constructor)
+      : this.manager.getModule(constructor);
   }
 
   /**
    *セッション情報を含んだモジュールインスタンスの取得
-   *JS_*の命令以降で使用しないとエラーになる
+   *@EXPORT の命令以降で使用しないと例外を発生させる
    * @template T
    * @param {{
    *     new (manager: Manager): T;
@@ -347,9 +351,29 @@ export class Module<T extends ModuleMap = ModuleMap> {
   public getSessionModule<T extends Module>(constructor: {
     new (manager: Manager): T;
   }): T {
+    if (!this.getSession()) throw "セッション情報が存在しない";
     return this.getSession().getModule(constructor);
   }
-
+  public isAuthority(item: string) {
+    const session = this.getSession();
+    if (!session) return true;
+    const authoritys = this.getSessionItem("AUTHORITYS");
+    if (authoritys instanceof Array) {
+      const items = new Set(authoritys);
+      return items.has("ALL") || items.has(item);
+    }
+    return false;
+  }
+  public setAuthority(item: string) {
+    const session = this.getSession();
+    if (!session) return false;
+    const authoritys = this.getSessionItem("AUTHORITYS");
+    this.setSessionItem(
+      "AUTHORITYS",
+      authoritys instanceof Array ? [...authoritys, item] : [item]
+    );
+    return true;
+  }
   /**
    *カスタムコマンドの追加
    *  /?cmd=コマンド

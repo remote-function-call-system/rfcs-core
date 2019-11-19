@@ -1,14 +1,13 @@
 {
   "name": "@jswf/rfs",
-  "version": "0.1.0",
+  "version": "0.1.0.1",
   "description": "Remote Function System",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "test": "cd test && npm i && npm run build:back && npm run test",
     "build": "tsc -b src/tsconfig.json",
-    "watch": "tsc -b src/tsconfig.json -w",
-    "build:test": "tsc -b src-test/tsconfig.json"
+    "watch": "tsc -b src/tsconfig.json -w"
   },
   "bin": {
     "init-rfs": "bin/init.js"
@@ -34,7 +33,6 @@
     "uuid": "^3.3.3"
   },
   "devDependencies": {
-    "@jswf/adapter": "^0.1.3",
     "@types/express": "~4.17.2",
     "@types/node": "~12.12.9",
     "@types/sqlite3": "~3.1.5",

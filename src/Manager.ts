@@ -10,13 +10,11 @@ import { Session } from "./Session";
 import { AdapterResult } from "./Session";
 import { ConnectionOptions } from "typeorm";
 
+
 /**
  *
  *
- * @export
- * @interface ManagerParams
- * @property {string} modulePath	モジュール配置パス
- * @property {boolean} debug		デバッグ用メッセージ出力(0:None 1:Recv 2:Recv/Send)
+ * @interface AdapterFormat
  */
 interface AdapterFormat {
   globalHash: string | null; //ブラウザ共通セッションキー
@@ -200,16 +198,10 @@ export class Manager {
     }
     return modulesType;
   }
-  public loadModule(moduleName: string) {
+  public loadModule<T extends Module>(module:  {new (manager: Manager): T}) {
     let modulesType: { [key: string]: typeof Module } = {};
-    const r = require(moduleName) as { [key: string]: typeof Module };
-    if (r) {
-      for (const name of Object.keys(r)) {
-        const module = r[name];
-        if (module.prototype instanceof Module) {
-          modulesType[name] = module;
-        }
-      }
+    if (module.prototype instanceof Module) {
+      modulesType[module.name] = module as never;
     }
     return modulesType;
   }
@@ -287,26 +279,41 @@ export class Manager {
    * @param {string} dirPath				ドキュメントのパス
    * @memberof Manager
    */
-  public init(params: {
-    modulePath?: string | string[];
-    module?: string | string[];
+  /**
+   *Managerの初期化
+   *
+   * @param {({
+   *     moduleDir?: string | string[];       //一括読みだし用モジュールのディレクトリ名
+   *     module?: string | string[];          //個別モジュール名
+   *     debug?: number;                      //0:デバッグ出力無し 1:入出力 2:入力のみ
+   *     databaseOption?: ConnectionOptions;  //データベース設定
+   *     express: Express;                    //Expressのインスタンス
+   *     scriptPath?: string;                 //フロントエンド側からみたパス
+   *   })} params
+   * @returns {Promise<void>}
+   * @memberof Manager
+   */
+  public init<T extends Module>(params: {
+    moduleDir?: string | string[];
+    module?: {new (manager: Manager): T}|{new (manager: Manager): T}[];
     debug?: number;
     databaseOption?: ConnectionOptions;
     express: Express;
-    dirPath: string;
+    scriptPath?: string;
   }): Promise<void> {
     return new Promise(async (resolve, reject) => {
       this.debug = params.debug || 0;
+      this.output("-- start modules init --");
       //モジュールを読み出す
       const modulesType = {
-        ...(!params.modulePath
+        ...(!params.moduleDir
           ? {}
-          : params.modulePath instanceof Array
-          ? params.modulePath.reduce<{ [key: string]: typeof Module }>(
+          : params.moduleDir instanceof Array
+          ? params.moduleDir.reduce<{ [key: string]: typeof Module }>(
               (a, b) => ({ ...a, ...this.loadModuleDir(b) }),
               {}
             )
-          : this.loadModuleDir(params.modulePath)),
+          : this.loadModuleDir(params.moduleDir)),
         ...(!params.module
           ? {}
           : params.module instanceof Array
@@ -346,6 +353,8 @@ export class Manager {
         if (m.onCreatedModule) await m.onCreatedModule();
       }
 
+      this.output("--- end modules init ---");
+
       Manager.initFlag = true;
 
       const commands = this.commands;
@@ -365,10 +374,12 @@ export class Manager {
       params.express.use(
         bodyParser.raw({ type: "application/octet-stream", limit: "300mb" })
       );
-      params.express.use(bodyParser.json({ type: "application/json", limit: "3mb" }));
+      params.express.use(
+        bodyParser.json({ type: "application/json", limit: "3mb" })
+      );
       //クライアント接続時の処理
       params.express.all(
-        params.dirPath,
+        params.scriptPath || "/",
         async (
           req: express.Request,
           res: express.Response,

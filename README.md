@@ -48,7 +48,8 @@ npm run test
 
 ### バックエンド側
 
-Moduleクラスを継承し、「JS_関数名」というメソッドを作る
+Moduleクラスを継承しメソッドを@EXPORTでデコレーションすると、
+フロントエンド側から呼び出しが可能となる
 
 ```ts
 import {Module, EXPORT} from "@jswf/rfs";

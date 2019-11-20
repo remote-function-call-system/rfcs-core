@@ -1,16 +1,16 @@
 {
   "name": "@rfcs/core",
-  "version": "1.0.0-rev2",
+  "version": "1.0.0",
   "description": "Remote function call system",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "test": "cd test && npm i && npm run build && npm run test",
+    "test": "pkg-local dist && cd test && yarn install && yarn build && yarn test",
     "build": "tsc -b src/tsconfig.json",
     "watch": "tsc -b src/tsconfig.json -w"
   },
   "bin": {
-    "init-rfcs": "bin/init.js"
+    "init-rfcs": "dist/bin/init.js"
   },
   "keywords": [
     "ajax",
@@ -33,10 +33,10 @@
     "uuid": "^3.3.3"
   },
   "devDependencies": {
-    "@types/express": "~4.17.2",
     "@types/node": "~12.12.11",
     "@types/sqlite3": "~3.1.5",
     "@types/uuid": "~3.4.6",
+    "pkg-local": "^1.0.2",
     "typescript": "^3.7.2"
   },
   "homepage": "https://ttis.croud.jp/?uuid=71ba22b3-2a2f-493b-aa25-e6ffa21c7f72",

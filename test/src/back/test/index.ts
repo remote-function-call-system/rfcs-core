@@ -1,6 +1,6 @@
 import { Adapter } from "@rfcs/adapter";
 import { Server } from "http";
-import { UserInfo, Users } from "../modules/User/User.mod";
+import { UserInfo, Users } from "@rfcs/user";
 
 //モジュール型定義
 interface AdapterMap {

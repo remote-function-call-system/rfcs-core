@@ -1,4 +1,4 @@
-import { ModuleMap, Module, ModuleInfo, EXPORT } from "@jswf/rfs";
+import { ModuleMap, Module, ModuleInfo, EXPORT } from "@rfcs/core";
 import * as typeorm from "typeorm";
 import { DatabaseConfigEntity } from "./Entity";
 
@@ -23,10 +23,10 @@ export interface CustomMap extends ModuleMap {
  */
 export class RemoteDB<T extends CustomMap = CustomMap> extends Module<T> {
   protected static moduleInfo: ModuleInfo = {
-    name: "リモートデータベースモジュール",
+    name: "Remote database module",
     version: 1,
-    author: "空雲",
-    info: "メインデータベースアクセス用"
+    author: "SoraKumo",
+    info: "Main database access"
   };
   private entities: ((new () => T) | Function)[] = [];
   private localRepository?: typeorm.Repository<DatabaseConfigEntity>;
@@ -60,7 +60,7 @@ export class RemoteDB<T extends CustomMap = CustomMap> extends Module<T> {
   }
   public async connect() {
     if (await this.open().catch(() => false)) {
-      this.output("DBの接続完了");
+      this.output("DB connected");
       return true;
     }
     return false;

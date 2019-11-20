@@ -1,4 +1,4 @@
-import {Module, EXPORT} from "@jswf/rfs";
+import {Module, EXPORT} from "@rfcs/core";
 
 /**
  *テストモジュール

@@ -1,8 +1,7 @@
-import { Manager } from "@jswf/rfs";
+import { Manager } from "@rfcs/core";
 import * as path from "path";
 import Express from "express";
 import { test } from "./test";
-import { TestModule } from "./modules/Test.mod";
 
 //起動オプションの確認
 const options = new Set(process.argv);

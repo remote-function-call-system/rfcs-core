@@ -110,7 +110,7 @@ export class Module<T extends ModuleMap = ModuleMap> {
       author: "",
       info: ""
     };
-    return { ...defaultInfo, ...Module.moduleInfo };
+    return { ...defaultInfo, ...this.moduleInfo };
   }
   public static getImportModules(){
     return Module.importModules;

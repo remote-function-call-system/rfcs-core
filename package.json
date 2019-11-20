@@ -1,16 +1,16 @@
 {
-  "name": "@jswf/rfs",
-  "version": "0.1.0-rev3",
-  "description": "Remote Function System",
+  "name": "@rfcs/core",
+  "version": "1.0.0",
+  "description": "Remote function call system",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "test": "cd test && npm i && npm run build:back && npm run test",
+    "test": "cd test && npm i && npm run build && npm run test",
     "build": "tsc -b src/tsconfig.json",
     "watch": "tsc -b src/tsconfig.json -w"
   },
   "bin": {
-    "init-rfs": "bin/init.js"
+    "init-rfcs": "bin/init.js"
   },
   "keywords": [
     "ajax",
@@ -34,17 +34,20 @@
   },
   "devDependencies": {
     "@types/express": "~4.17.2",
-    "@types/node": "~12.12.9",
+    "@types/node": "~12.12.11",
     "@types/sqlite3": "~3.1.5",
     "@types/uuid": "~3.4.6",
     "typescript": "^3.7.2"
   },
+  "homepage": "https://ttis.croud.jp/?uuid=71ba22b3-2a2f-493b-aa25-e6ffa21c7f72",
+  "directories": {
+    "test": "test"
+  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JavaScript-WindowFramework/jswf-rfs.git"
+    "url": "git+https://github.com/remote-function-call-system/rfcs-core.git"
   },
   "bugs": {
-    "url": "https://github.com/JavaScript-WindowFramework/jswf-rfs/issues"
-  },
-  "homepage": "https://ttis.croud.jp/?uuid=71ba22b3-2a2f-493b-aa25-e6ffa21c7f72"
+    "url": "https://github.com/remote-function-call-system/rfcs-core/issues"
+  }
 }

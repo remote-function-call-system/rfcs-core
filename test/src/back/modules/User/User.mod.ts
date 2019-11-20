@@ -1,7 +1,7 @@
 import * as crypto from "crypto";
-import { Module, EXPORT, ModuleInfo, ImportModules } from "@jswf/rfs";
+import { Module, EXPORT, ModuleInfo, ImportModules } from "@rfcs/core";
 import * as typeorm from "typeorm";
-import { RemoteDB } from "../../RemoteDB/RemoteDB.mod";
+import { RemoteDB } from "../RemoteDB";
 import { UserEntity } from "./UserEntity";
 
 export interface UserInfo {

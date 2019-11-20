@@ -1,4 +1,4 @@
-# @jswf/rfs Remote function system
+# @rfsc/core Remote function call system
 
 ## 用途
 
@@ -7,7 +7,7 @@
 ## 使い方
 
 - テンプレートの展開
-npx init-rfs
+npx init-rfcs
 
 - テンプレートのビルド
 npm build
@@ -52,7 +52,7 @@ Moduleクラスを継承しメソッドを@EXPORTでデコレーションする�
 フロントエンド側から呼び出しが可能となる
 
 ```ts
-import {Module, EXPORT} from "@jswf/rfs";
+import {Module, EXPORT} from "@rfcs/core";
 
 /**
  *テストモジュール

@@ -64,14 +64,18 @@ export function EXPORT(
 
 export interface ModuleInfo {
   className?: string;
-  name: string;
-  version: number;
-  author: string;
-  info: string;
+  name?: string;
+  version?: number;
+  author?: string;
+  info?: string;
 }
 export interface ModuleMap {
   [key: string]: unknown[];
 }
+export type ImportModules = {
+  new (manager: Manager): Module;
+}[];
+
 /**
  *モジュール作成用基本クラス
  *
@@ -79,10 +83,12 @@ export interface ModuleMap {
  * @class Module
  */
 export class Module<T extends ModuleMap = ModuleMap> {
+  protected static moduleInfo?: ModuleInfo;
+  public static importModules?: ImportModules;
   private listeners: {
     [key: string]: unknown[];
   } = {};
-  public static Module: boolean = true;
+  public static ModuleIdentification: boolean = true;
   private manager: Manager;
   private session: Session | null = null;
   public static getLocalEntitys(): unknown[] {
@@ -96,14 +102,18 @@ export class Module<T extends ModuleMap = ModuleMap> {
    * @returns {ModuleInfo}
    * @memberof Module
    */
-  public static getModuleInfo(): ModuleInfo {
-    return {
+  public static getModuleInfo(): NonNullable<ModuleInfo> {
+    const defaultInfo = {
       className: this.name,
       name: "Module",
       version: 1,
       author: "",
       info: ""
     };
+    return { ...defaultInfo, ...Module.moduleInfo };
+  }
+  public static getImportModules(){
+    return Module.importModules;
   }
   /**
    *Creates an instance of Module.

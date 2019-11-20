@@ -1,6 +1,6 @@
 {
   "name": "@jswf/rfs",
-  "version": "0.1.0-rev2",
+  "version": "0.1.0-rev3",
   "description": "Remote Function System",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

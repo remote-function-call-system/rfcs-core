@@ -10,7 +10,6 @@ import { Session } from "./Session";
 import { AdapterResult } from "./Session";
 import { ConnectionOptions } from "typeorm";
 
-
 /**
  *
  *
@@ -174,36 +173,34 @@ export class Manager {
    * @returns
    * @memberof Manager
    */
-  public loadModuleDir(modulePath: string) {
-    let modulesType: { [key: string]: typeof Module } = {};
+  private loadModuleDir(modulePath: string) {
     const files = fs.readdirSync(modulePath);
     for (const file of files) {
       const filePath = path.join(modulePath, file);
       const dir = fs.statSync(filePath).isDirectory();
       if (dir) {
-        modulesType = Object.assign(modulesType, this.loadModuleDir(filePath));
+        this.loadModuleDir(filePath);
       } else {
         if (file.match(`\(?<=\.(ts|js))(?<!d\.ts)$`)) {
           const r = require(filePath) as { [key: string]: typeof Module };
           if (r) {
-            for (const name of Object.keys(r)) {
-              const module = r[name];
-              if (module.prototype instanceof Module) {
-                modulesType[name] = module;
-              }
+            for (const module of Object.values(r)) {
+              this.loadModule(module);
             }
           }
         }
       }
     }
-    return modulesType;
   }
-  public loadModule<T extends Module>(module:  {new (manager: Manager): T}) {
-    let modulesType: { [key: string]: typeof Module } = {};
-    if (module.prototype instanceof Module) {
-      modulesType[module.name] = module as never;
+  private loadModule(module: { new (manager: Manager): Module } ) {
+    if (module.prototype instanceof Module && !this.modulesType[module.name]) {
+      this.modulesType[module.name] = module as never;
+      //依存モジュールのロード
+      const importModules = (<typeof Module>module).importModules;
+      if(importModules)
+        for(const m of importModules)
+          this.loadModule(m);
     }
-    return modulesType;
   }
   /**
    *モジュールの取得と新規インスタンスの作成
@@ -217,20 +214,16 @@ export class Manager {
     type: string | { new (manager: Manager): T }
   ): Promise<T> {
     const modules = this.modulesInstance;
-    let name;
-    let module;
-    if (typeof type === "string") name = type;
-    else name = type.name;
-    module = modules[name];
-    if (module) return module as T;
+    const name = typeof type === "string" ? type : type.name;
+
+    if (modules[name]) return modules[name] as T;
     let constructor = this.modulesType[name];
-    if (constructor == null || !("Module" in constructor))
+    if (constructor == null || !("ModuleIdentification" in constructor))
       throw "getModule error";
-    module = new constructor(this);
+    const module = new constructor(this);
     modules[name] = module;
 
-    const info = constructor.getModuleInfo();
-    this.output("init: %s", JSON.stringify(info));
+    this.output("init: %s", JSON.stringify(constructor.getModuleInfo()));
     //初期化に失敗したらnullを返す
     if (!(await module.onCreateModule())) throw "Module Create Error";
     this.modulesList.push(module);
@@ -293,9 +286,11 @@ export class Manager {
    * @returns {Promise<void>}
    * @memberof Manager
    */
-  public init<T extends Module>(params: {
+  public init(params: {
     moduleDir?: string | string[];
-    module?: {new (manager: Manager): T}|{new (manager: Manager): T}[];
+    module?:
+      | { new (manager: Manager): Module }
+      | { new (manager: Manager): Module }[];
     debug?: number;
     databaseOption?: ConnectionOptions;
     express: Express;
@@ -305,28 +300,21 @@ export class Manager {
       this.debug = params.debug || 0;
       this.output("-- start modules init --");
       //モジュールを読み出す
-      const modulesType = {
-        ...(!params.moduleDir
-          ? {}
-          : params.moduleDir instanceof Array
-          ? params.moduleDir.reduce<{ [key: string]: typeof Module }>(
-              (a, b) => ({ ...a, ...this.loadModuleDir(b) }),
-              {}
-            )
-          : this.loadModuleDir(params.moduleDir)),
-        ...(!params.module
-          ? {}
-          : params.module instanceof Array
-          ? params.module.reduce<{ [key: string]: typeof Module }>(
-              (a, b) => ({ ...a, ...this.loadModule(b) }),
-              {}
-            )
-          : this.loadModule(params.module))
-      };
-      this.modulesType = modulesType;
+      if (params.moduleDir) {
+        if (params.moduleDir instanceof Array) {
+          for (const dir of Object.values(params.moduleDir))
+            this.loadModuleDir(dir);
+        } else this.loadModuleDir(params.moduleDir);
+      }
+      if (params.module) {
+        if (params.module instanceof Array) {
+          for (const module of Object.values(params.module))
+            this.loadModule(module);
+        } else this.loadModule(params.module);
+      }
 
       //モジュールの初期化
-      for (const name of Object.keys(modulesType)) {
+      for (const name of Object.keys(this.modulesType)) {
         if (!(await this.getModule(name))) process.exit(-10);
       }
 

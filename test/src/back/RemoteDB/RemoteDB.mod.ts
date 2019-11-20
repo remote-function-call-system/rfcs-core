@@ -22,6 +22,12 @@ export interface CustomMap extends ModuleMap {
  * @template T
  */
 export class RemoteDB<T extends CustomMap = CustomMap> extends Module<T> {
+  protected static moduleInfo: ModuleInfo = {
+    name: "リモートデータベースモジュール",
+    version: 1,
+    author: "空雲",
+    info: "メインデータベースアクセス用"
+  };
   private entities: ((new () => T) | Function)[] = [];
   private localRepository?: typeorm.Repository<DatabaseConfigEntity>;
   public addEntity<T>(model: (new () => T) | Function) {
@@ -32,15 +38,7 @@ export class RemoteDB<T extends CustomMap = CustomMap> extends Module<T> {
     return this.connection.getRepository(model);
   }
   connection?: typeorm.Connection;
-  public static getModuleInfo(): ModuleInfo {
-    return {
-      className: this.name,
-      name: "リモートデータベースモジュール",
-      version: 1,
-      author: "空雲",
-      info: "メインデータベースアクセス用"
-    };
-  }
+
   public getConnection() {
     return this.connection;
   }

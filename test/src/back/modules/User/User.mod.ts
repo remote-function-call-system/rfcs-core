@@ -1,7 +1,7 @@
 import * as crypto from "crypto";
-import { Module, EXPORT } from "@jswf/rfs";
+import { Module, EXPORT, ModuleInfo, ImportModules } from "@jswf/rfs";
 import * as typeorm from "typeorm";
-import { RemoteDB } from "../RemoteDB/RemoteDB.mod";
+import { RemoteDB } from "../../RemoteDB/RemoteDB.mod";
 import { UserEntity } from "./UserEntity";
 
 export interface UserInfo {
@@ -20,6 +20,7 @@ export interface UserInfo {
  * @extends {amf.Module}
  */
 export class Users extends Module {
+  public static importModules?: ImportModules = [RemoteDB];
   private userRepository?: typeorm.Repository<UserEntity>;
   private userInfo?: UserInfo;
 

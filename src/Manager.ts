@@ -192,7 +192,7 @@ export class Manager {
       }
     }
   }
-  private loadModule(module: { new (manager: Manager): Module } ) {
+  private loadModule(module: { new (manager: Manager): unknown } ) {
     if (module.prototype instanceof Module && !this.modulesType[module.name]) {
       this.modulesType[module.name] = module as never;
       //依存モジュールのロード
@@ -289,8 +289,8 @@ export class Manager {
   public init(params: {
     moduleDir?: string | string[];
     module?:
-      | { new (manager: Manager): Module }
-      | { new (manager: Manager): Module }[];
+      | { new (manager: Manager): unknown }
+      | { new (manager: Manager): unknown }[];
     debug?: number;
     databaseOption?: ConnectionOptions;
     express: Express;

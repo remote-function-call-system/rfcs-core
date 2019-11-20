@@ -12,10 +12,10 @@
   "author": "SoraKumo",
   "license": "ISC",
   "dependencies": {
+    "@rfcs/adapter": "^1.0.0",
     "@rfcs/core": "file:.."
   },
   "devDependencies": {
-    "@jswf/adapter": "^0.1.4-devel",
     "@types/express": "^4.17.2",
     "typescript": "^3.7.2"
   }

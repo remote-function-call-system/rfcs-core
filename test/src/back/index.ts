@@ -2,6 +2,8 @@ import { Manager } from "@rfcs/core";
 import * as path from "path";
 import Express from "express";
 import { test } from "./test";
+import { Users } from '@rfcs/user';
+
 
 //起動オプションの確認
 const options = new Set(process.argv);
@@ -25,7 +27,7 @@ manager
       database: path.resolve(__dirname, "../db/app.db")
     },
     //個別でモジュールを指定する場合
-    //module: TestModule,
+    module: [Users],
     express, //Express
     scriptPath //Remote address
   })

@@ -289,8 +289,8 @@ export class Manager {
   public init(params: {
     moduleDir?: string | string[];
     module?:
-      | { new (manager: Manager): unknown }
-      | { new (manager: Manager): unknown }[];
+      | { new (manager: Manager): Module }
+      | { new (manager: Manager): Module }[];
     debug?: number;
     databaseOption?: ConnectionOptions;
     express: Express;

@@ -2,8 +2,6 @@ import { Manager } from "@rfcs/core";
 import * as path from "path";
 import Express from "express";
 import { test } from "./test";
-import { Users } from '@rfcs/user';
-
 
 //起動オプションの確認
 const options = new Set(process.argv);
@@ -21,18 +19,18 @@ manager
     debug: 1,
     //モジュールディレクトリから一括で読み込む
     moduleDir: path.resolve(__dirname, "./modules"),
-    databaseOption: {
       //TypeORMのDB設定(未指定の場合はsqliteがメモリ上に作成される)
-      type: "sqlite",
-      database: path.resolve(__dirname, "../db/app.db")
-    },
+    // databaseOption: {
+    //   type: "sqlite",
+    //   database: path.resolve(__dirname, "../db/app.db")
+    // },
     //個別でモジュールを指定する場合
-    module: [Users],
+    //module: [TestModule],
     express, //Express
     scriptPath //Remote address
   })
   .then(() => {
-    //静的ファイルの設定(index.jsからの相対パス)
+    //静的ファイルの設定(出力したindex.jsからの相対パス)
     express.use(Express.static(path.resolve(__dirname, "../public")));
     try {
       const port = 8080;

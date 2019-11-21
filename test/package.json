@@ -4,21 +4,37 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "test-install": "yarn add ../dist && yarn init-rfcs",
+    "start": "node --preserve-symlinks dist/app/index.js",
     "test": "node --preserve-symlinks dist/app/index.js --test",
-    "watch": "tsc -b src/back -w ",
-    "build": "tsc -b src/back"
+    "build": "npm run build:back && npm run build:front",
+    "watch": "concurrently 'npm:watch:back' 'npm:watch:front'",
+    "watch:front": "webpack --config src/front/webpack.config.js -w --mode development",
+    "build:front": "webpack --config src/front/webpack.config.js",
+    "watch:back": "tsc -b src/back -w ",
+    "build:back": "tsc -b src/back"
   },
   "keywords": [],
   "author": "SoraKumo",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
-    "@rfcs/adapter": "^1.0.0",
-    "@rfcs/core": "file:../dist",
-    "@rfcs/remote-db": "^1.0.0",
-    "@rfcs/user": "^1.0.0"
+    "@rfcs/core": "../dist"
   },
   "devDependencies": {
+    "@jswf/adapter": "^0.1.3",
+    "@rfcs/adapter": "^1.0.0",
     "@types/express": "^4.17.2",
-    "typescript": "^3.7.2"
+    "concurrently": "^5.0.0",
+    "css-loader": "^3.2.0",
+    "html-webpack-plugin": "^3.2.0",
+    "node-sass": "^4.13.0",
+    "sass-loader": "^8.0.0",
+    "source-map-loader": "^0.2.4",
+    "style-loader": "^1.0.0",
+    "ts-loader": "^6.2.1",
+    "typescript": "^3.7.2",
+    "url-loader": "^2.2.0",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10"
   }
 }

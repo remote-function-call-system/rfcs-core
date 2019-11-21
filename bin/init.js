@@ -27,7 +27,7 @@ fs.writeFileSync("package.json", JSON.stringify(config, null, "  "), "utf-8");
 console.log("2: install packages");
 const proc = spawn(
   npm,
-  "i -D ts-loader node-sass style-loader sass-loader css-loader url-loader source-map-loader webpack webpack-cli  html-webpack-plugin typescript @types/express @jswf/adapter concurrently".split(
+  "i -D ts-loader node-sass style-loader sass-loader css-loader url-loader source-map-loader webpack webpack-cli  html-webpack-plugin typescript @types/express @rfcs/adapter concurrently".split(
     " "
   ),
   { stdio: "inherit" }

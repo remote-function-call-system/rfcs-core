@@ -1,29 +1,50 @@
-import { Adapter } from "@jswf/adapter";
+import { Manager } from "@rfcs/core";
+import * as path from "path";
+import Express from "express";
+import { test } from "./test";
 
-//ページ読み込み時に実行する処理を設定
-addEventListener("DOMContentLoaded", Main);
+//起動オプションの確認
+const options = new Set(process.argv);
+const testMode = options.has("--test");
 
-async function Main() {
-  //通信アダプタの作成
-  const adapter = new Adapter("scripts");
+//Expressの作成
+const express = Express();
 
-  //入力用UIの作成
-  const body = document.querySelector("body")!;
-  const client = document.createElement("div");
-  client.style.padding = "1em";
-  client.innerHTML = `<input> + <input> <button>=</button> <span>？</span>`;
-  body.appendChild(client);
-
-  //各ノードの取得
-  const nodes = Array.from<HTMLInputElement>(client.querySelectorAll("input,button,span"));
-  //ボタンイベントの処理
-  nodes[2].addEventListener("click", async () => {
-    //Inputタグから内容を取り出す
-    const a = parseInt(nodes[0].value);
-    const b = parseInt(nodes[1].value);
-    //サーバにデータを送信し、受信完了まで待つ
-    const result = (await adapter.exec("TestModule.add", a, b)) as number;
-    //結果を書き込む
-    nodes[3].textContent = result.toString();
+//管理用マネージャクラスの作成
+const manager = new Manager();
+const scriptPath = "/scripts";
+manager
+  .init({
+    //デバッグレベル
+    debug: 1,
+    //モジュールディレクトリから一括で読み込む
+    moduleDir: path.resolve(__dirname, "./modules"),
+      //TypeORMのDB設定(未指定の場合はsqliteがメモリ上に作成される)
+    // databaseOption: {
+    //   type: "sqlite",
+    //   database: path.resolve(__dirname, "../db/app.db")
+    // },
+    //個別でモジュールを指定する場合
+    //module: [TestModule],
+    express, //Express
+    scriptPath //Remote address
+  })
+  .then(() => {
+    //静的ファイルの設定(出力したindex.jsからの相対パス)
+    express.use(Express.static(path.resolve(__dirname, "../public")));
+    try {
+      const port = 8080;
+      const url = `http://localhost:${port}`;
+      //待ち受けポート設定
+      const server = express.listen(8080, () => {
+        console.log(`URL: ${url}`);
+        //テストの実行
+        testMode && test(server, `${url}${scriptPath}`);
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  })
+  .catch(() => {
+    console.error("RFS起動エラー");
   });
-}

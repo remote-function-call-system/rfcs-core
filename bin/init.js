@@ -5,7 +5,7 @@ const npm = "npm" + (process.platform === "win32" ? ".cmd" : "");
 
 const fs = require("fs-extra");
 console.log("1: copy template files");
-fs.copySync("node_modules/@jswf/rfs/resource", ".");
+fs.copySync("node_modules/@rfcs/core/resource", ".");
 
 let config = JSON.parse(fs.readFileSync("package.json"));
 

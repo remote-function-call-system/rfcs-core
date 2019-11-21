@@ -1,4 +1,4 @@
-import { Adapter } from "@jswf/adapter";
+import { Adapter } from "@rfcs/adapter";
 import { Server } from "http";
 
 //モジュール型定義

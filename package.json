@@ -5,8 +5,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "test": "pkg-local dist && cpx resource/** dist/resource && cd test && yarn test-install && yarn build && yarn test",
-    "build": "cpx bin/** dist/bin && tsc -b src/tsconfig.json",
+    "test": "pkg-local dist && cpx 'resource/**' dist/resource && cd test && yarn test-install && yarn build && yarn test",
+    "build": "cpx 'bin/**' dist/bin && tsc -b src/tsconfig.json",
     "watch": "tsc -b src/tsconfig.json -w"
   },
   "bin": {

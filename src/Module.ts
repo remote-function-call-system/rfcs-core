@@ -44,15 +44,15 @@ export function EXPORT(
   const result = {
     ...descriptor,
     value: function(...params: unknown[]) {
-      if (ptypes.length !== params.length) throw "Invalid number of arguments";
+      if (ptypes.length !== params.length) throw new Error("Invalid number of arguments");
       const flag = ptypes.reduce((a, b, index) => {
         return a && isType(b, params[index]);
       }, true);
       if (!flag) {
-        throw "Invalid argument type";
+        throw new Error("Invalid argument type");
       }
       const result = descriptor.value.apply(this, params);
-      if (!isType(rtype, result)) throw "Invalid return type";
+      if (!isType(rtype, result)) throw new Error("Invalid return type");
       return result;
     }
   };
@@ -241,7 +241,7 @@ export class Module<T extends ModuleMap = ModuleMap> {
    * @memberof Module
    */
   public getSession(): Session {
-    if (!this.session) throw "Session Error";
+    if (!this.session) throw new Error("Session Error");
     return this.session;
   }
   public isSession(): boolean {
@@ -361,7 +361,7 @@ export class Module<T extends ModuleMap = ModuleMap> {
   public getSessionModule<T extends Module>(constructor: {
     new (manager: Manager): T;
   }): T {
-    if (!this.getSession()) throw "セッション情報が存在しない";
+    if (!this.getSession()) throw new Error("セッション情報が存在しない");
     return this.getSession().getModule(constructor);
   }
   public isAuthority(item: string) {

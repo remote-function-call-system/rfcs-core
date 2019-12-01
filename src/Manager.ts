@@ -219,13 +219,13 @@ export class Manager {
     if (modules[name]) return modules[name] as T;
     let constructor = this.modulesType[name];
     if (constructor == null || !("ModuleIdentification" in constructor))
-      throw "getModule error";
+      throw new Error("getModule error");
     const module = new constructor(this);
     modules[name] = module;
 
     this.output("init: %s", JSON.stringify(constructor.getModuleInfo()));
     //初期化に失敗したらnullを返す
-    if (!(await module.onCreateModule())) throw "Module Create Error";
+    if (!(await module.onCreateModule())) throw new Error("Module Create Error");
     this.modulesList.push(module);
     return module as T;
   }
@@ -247,7 +247,7 @@ export class Manager {
     else name = type.name;
     module = this.modulesInstance[name];
     if (module) return module as T;
-    throw "Module Load Error";
+    throw new Error("Module Load Error");
   }
 
   /**

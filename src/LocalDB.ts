@@ -16,11 +16,11 @@ export class LocalDB {
     return this.db;
   }
   public getRepository<T>(model: new () => T): typeorm.Repository<T> {
-    if (!this.db) throw "Error can't local database";
+    if (!this.db) throw new Error("Error can't local database");
     return this.db.getRepository(model);
   }
   public getCustomRepository<T>(model: typeorm.ObjectType<T>): T {
-    if (!this.db) throw "Error can't local database";
+    if (!this.db) throw new Error("Error can't local database");
     return this.db.getCustomRepository(model);
   }
   public async open(options: Partial<typeorm.ConnectionOptions>) {

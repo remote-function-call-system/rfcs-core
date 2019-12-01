@@ -280,13 +280,13 @@ export class Session {
     }
     try {
       const moduleSrc = this.manager.getModuleSync(type);
-      if (!moduleSrc) throw `Module not found: ${type.toString()}`;
+      if (!moduleSrc) throw new Error(`Module not found: ${type.toString()}`);
       const module = Object.assign(moduleSrc) as T;
       module.setSession(this);
       this.modules.push(module);
       return module;
     } catch (e) {
-      throw `Module not found: ${type.toString()}`;
+      throw new Error(`Module not found: ${type.toString()}`);
     }
   }
   public async releaseModules(): Promise<void> {

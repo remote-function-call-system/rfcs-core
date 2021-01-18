@@ -1,6 +1,6 @@
 {
   "name": "@rfcs/core",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Remote function call system",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

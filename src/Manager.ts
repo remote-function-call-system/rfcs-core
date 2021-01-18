@@ -9,6 +9,7 @@ import { LocalDB } from "./LocalDB";
 import { Session } from "./Session";
 import { AdapterResult } from "./Session";
 import { ConnectionOptions } from "typeorm";
+import * as cluster from "cluster";
 
 /**
  *
@@ -129,6 +130,17 @@ export class Manager {
   } {
     return this.modulesType;
   }
+  /**
+   *モジュールのインスタンスを返す
+   *
+   * @returns {{
+    *     Module[];
+    *   }}
+    * @memberof Manager
+    */
+  public getModules(){
+    return this.modulesInstance;
+  }
 
   /**
    *デバッグ情報の出力
@@ -142,7 +154,7 @@ export class Manager {
       // eslint-disable-next-line no-console
       (process.stdout as any)._handle.setBlocking(false);
       console.log(
-        (process.env.NODE_APP_INSTANCE || "0") + ":" + msg,
+        (process.env.NODE_APP_INSTANCE || cluster.worker?.id || "0") + ":" + msg,
         ...params
       );
     }
@@ -160,7 +172,7 @@ export class Manager {
           undefined,
           error => {
             if (error) reject(error);
-            else resolve();
+            else resolve(null);
           }
         );
       }
@@ -437,7 +449,7 @@ export class Manager {
     if (req.body instanceof Buffer) {
       const params = req.query.params;
       try {
-        const values = JSON.parse(params);
+        const values = JSON.parse(params as string);
         if (params) this.execute(res, values, req.body);
       } catch (e) {
         res.status(500);

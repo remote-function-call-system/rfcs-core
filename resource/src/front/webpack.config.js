@@ -1,6 +1,4 @@
 const path = require("path");
-const glob = require("glob");
-const TerserPlugin = require("terser-webpack-plugin");
 const htmlWebpackPlugin = require('html-webpack-plugin');
 const config = {
   mode: "production",
@@ -25,8 +23,8 @@ const config = {
         use: ["style-loader", "css-loader", "sass-loader"]
       },
       {
-        test: /\.(jpg|png|svg|gif)$/,
-        loaders: "url-loader"
+        test: /\.(jpg|png|gif)$/,
+        type: "asset/inline",
       }
     ]
   },
@@ -34,28 +32,10 @@ const config = {
     extensions: [".ts", ".js", ".scss", "css", ".svg"],
     moduleExtensions: ["node_modules"]
   },
-  optimization: {
-    minimizer: [
-      new TerserPlugin({
-        cache: true,
-        parallel: true,
-        sourceMap: true,
-        terserOptions: {
-          output: {
-            comments: false,
-            beautify: false
-          }
-        }
-      })
-    ]
+  resolve: {
+    symlinks: false,
+    extensions: [".ts", ".js", ".scss", "css", ".svg"],
   },
-  plugins: [
-    new htmlWebpackPlugin({
-      template: path.resolve(__dirname, "../template/index.html")
-    })
-  ]
 };
-if (config.mode === "development") {
-  config.devtool = "source-map";
-}
+config.devtool = "source-map";
 module.exports = config;

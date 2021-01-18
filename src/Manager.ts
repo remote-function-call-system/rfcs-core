@@ -139,7 +139,7 @@ export class Manager {
     * @memberof Manager
     */
   public getModules(){
-    return this.modulesList;
+    return Object.values(this.modulesInstance);
   }
 
   /**
@@ -498,17 +498,17 @@ export class Manager {
    * @memberof Manager
    */
   public async execute(
-    res: express.Response,
-    params: AdapterFormat,
+    res: express.Response|null,
+    params: AdapterFormat | ((session:Session)=>Promise<void>),
     buffer?: Buffer
   ): Promise<void> {
     //マネージャ機能をセッション用にコピー
     const session = new Session(this);
     await session.init(
       this.localDB,
-      params.globalHash,
-      params.sessionHash,
-      res,
+      typeof params === 'function'?null:params.globalHash,
+      typeof params === 'function'?null:params.sessionHash,
+      res!,
       buffer
     );
     session.result = {
@@ -524,8 +524,10 @@ export class Manager {
       if (modulesType[name].prototype.onStartSession)
         await session.initModule(name);
     }
-
-    if (params.functions) {
+    if(typeof params === 'function'){
+      await params(session);
+    }
+    else if (params.functions) {
       const results = session.result.results;
       //要求された命令の解析と実行
       for (const func of params.functions) {
@@ -567,16 +569,6 @@ export class Manager {
           result.error = util.format("パラメータ書式エラー: %s", func.function);
           continue;
         }
-        // if (funcPt.length !== func.params.length) {
-        //   result.error = util.format(
-        //     "パラメータの数が一致しない: %s %d %d",
-        //     func.function,
-        //     funcPt.length,
-        //     func.params.length
-        //   );
-        //   continue;
-        // }
-        //命令の実行
         try {
           if (this.debug)
             this.output(
@@ -596,14 +588,16 @@ export class Manager {
           continue;
         }
       }
-      //セッション終了
-      session.final();
     }
+    //セッション終了
+    session.final();
     //クライアントに返すデータを設定
-    if (session.isReturn()) {
-      res.json(session.result).on("error", () => {});
+    if(res){
+      if (session.isReturn()) {
+        res.json(session.result).on("error", () => {});
+      }
+      res.end();
     }
-    res.end();
   }
 
   /**

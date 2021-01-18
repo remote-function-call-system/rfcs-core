@@ -289,6 +289,19 @@ export class Session {
       throw new Error(`Module not found: ${type.toString()}`);
     }
   }
+  public async getModules():Promise<Module[] | null> {
+    try {
+      const modules = this.manager.getModules().map(module=>Object.assign(module));
+      await Promise.all(modules.map(module=>{
+        module.setSession(this);
+        this.modules.push(module)
+        if (module.onStartSession) return module.onStartSession();
+      }));
+      return modules;
+    } catch (e) {
+      return null;
+    }
+  }
   public async releaseModules(): Promise<void> {
     for (let module of this.modules) {
       if (module.onEndSession) await module.onEndSession();

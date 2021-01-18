@@ -139,7 +139,7 @@ export class Manager {
     * @memberof Manager
     */
   public getModules(){
-    return this.modulesInstance;
+    return this.modulesList;
   }
 
   /**

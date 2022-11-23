@@ -9,7 +9,7 @@ import { LocalDB } from "./LocalDB";
 import { Session } from "./Session";
 import { AdapterResult } from "./Session";
 import { ConnectionOptions } from "typeorm";
-import * as cluster from "cluster";
+import cluster from "cluster";
 
 /**
  *
@@ -138,7 +138,7 @@ export class Manager {
     *   }}
     * @memberof Manager
     */
-  public getModules(){
+  public getModules() {
     return Object.values(this.modulesInstance);
   }
 
@@ -204,13 +204,13 @@ export class Manager {
       }
     }
   }
-  private loadModule(module: { new (manager: Manager): unknown } ) {
+  private loadModule(module: { new(manager: Manager): unknown }) {
     if (module.prototype instanceof Module && !this.modulesType[module.name]) {
       this.modulesType[module.name] = module as never;
       //依存モジュールのロード
       const importModules = (<typeof Module>module).importModules;
-      if(importModules)
-        for(const m of importModules)
+      if (importModules)
+        for (const m of importModules)
           this.loadModule(m);
     }
   }
@@ -223,7 +223,7 @@ export class Manager {
    * @memberof Manager
    */
   public async getModule<T extends Module>(
-    type: string | { new (manager: Manager): T }
+    type: string | { new(manager: Manager): T }
   ): Promise<T> {
     const modules = this.modulesInstance;
     const name = typeof type === "string" ? type : type.name;
@@ -251,7 +251,7 @@ export class Manager {
    * @memberof Manager
    */
   public getModuleSync<T extends Module>(
-    type: string | { new (manager: Manager): T }
+    type: string | { new(manager: Manager): T }
   ): T | null {
     let name;
     let module;
@@ -301,8 +301,8 @@ export class Manager {
   public init(params: {
     moduleDir?: string | string[];
     module?:
-      | { new (manager: Manager): Module }
-      | { new (manager: Manager): Module }[];
+    | { new(manager: Manager): Module }
+    | { new(manager: Manager): Module }[];
     debug?: number;
     databaseOption?: ConnectionOptions;
     express: Express;
@@ -365,7 +365,7 @@ export class Manager {
         this.upload(req, res);
       };
 
-      params.express.options("*", function(req, res) {
+      params.express.options("*", function (req, res) {
         res.header("Access-Control-Allow-Headers", "content-type");
         res.sendStatus(200);
         res.end();
@@ -472,7 +472,7 @@ export class Manager {
     } else {
       let postData = "";
       req
-        .on("data", function(v: string): void {
+        .on("data", function (v: string): void {
           postData += v;
         })
         .on("end", (): void => {
@@ -498,16 +498,16 @@ export class Manager {
    * @memberof Manager
    */
   public async execute(
-    res: express.Response|null,
-    params: AdapterFormat | ((session:Session)=>Promise<void>),
+    res: express.Response | null,
+    params: AdapterFormat | ((session: Session) => Promise<void>),
     buffer?: Buffer
   ): Promise<void> {
     //マネージャ機能をセッション用にコピー
     const session = new Session(this);
     await session.init(
       this.localDB,
-      typeof params === 'function'?null:params.globalHash,
-      typeof params === 'function'?null:params.sessionHash,
+      typeof params === 'function' ? null : params.globalHash,
+      typeof params === 'function' ? null : params.sessionHash,
       res!,
       buffer
     );
@@ -524,7 +524,7 @@ export class Manager {
       if (modulesType[name].prototype.onStartSession)
         await session.initModule(name);
     }
-    if(typeof params === 'function'){
+    if (typeof params === 'function') {
       await params(session);
     }
     else if (params.functions) {
@@ -592,9 +592,9 @@ export class Manager {
     //セッション終了
     session.final();
     //クライアントに返すデータを設定
-    if(res){
+    if (res) {
       if (session.isReturn()) {
-        res.json(session.result).on("error", () => {});
+        res.json(session.result).on("error", () => { });
       }
       res.end();
     }

@@ -1,6 +1,6 @@
 *.tsbuildinfo
-package-lock.json
 dist
 node_modules
 .vscode/
 *.log
+yarn.lock

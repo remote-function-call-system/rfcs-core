@@ -16,7 +16,7 @@ jobs:
           restore-keys: ${{ runner.OS }}-build-${{ env.cache-name }}
       - name: Package install
         if: steps.cache.outputs.cache-hit != 'true'
-        run: yarn  
+        run: yarn
   release:
     name: check version, add tag and release
     needs: Modules

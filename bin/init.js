@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const { spawn } = require("child_process");
 
-const npm = "npm" + (process.platform === "win32" ? ".cmd" : "");
+const npm = "yarn" + (process.platform === "win32" ? ".cmd" : "");
 
 const fs = require("fs-extra");
 console.log("1: copy template files");

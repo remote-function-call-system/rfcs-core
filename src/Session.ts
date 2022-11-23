@@ -2,7 +2,7 @@ import { LocalDB } from "./LocalDB";
 import { Module } from "./Module";
 import { Manager } from "./Manager";
 import * as express from "express";
-import { SessionRepository } from "./entities/SessionEntity";
+import { getSessionRepository } from "./entities/SessionEntity";
 
 export interface AdapterResult {
   value: { [keys: string]: unknown } | null;
@@ -31,7 +31,7 @@ export class Session {
   private res?: Express.Response;
   private buffer?: Buffer;
   private returnFlag: boolean = true;
-  private sessionRepository!: SessionRepository;
+  private sessionRepository!: ReturnType<typeof getSessionRepository>;
   public constructor(manager: Manager) {
     this.manager = manager;
   }
@@ -57,7 +57,7 @@ export class Session {
     res: Express.Response,
     buffer?: Buffer
   ): Promise<void> {
-    const sessionRepository = db.getCustomRepository(SessionRepository);
+    const sessionRepository = getSessionRepository(db.getDB()!);
     this.sessionRepository = sessionRepository;
     const global = await sessionRepository.startSession(
       "GLOBAL",
@@ -261,8 +261,8 @@ export class Session {
   public getModule<T extends Module>(
     type:
       | ({
-          new (manager: Manager): T;
-        })
+        new(manager: Manager): T;
+      })
       | string
   ): T {
     if (typeof type === "string") {
@@ -289,10 +289,10 @@ export class Session {
       throw new Error(`Module not found: ${type.toString()}`);
     }
   }
-  public async getModules():Promise<Module[] | null> {
+  public async getModules(): Promise<Module[] | null> {
     try {
-      const modules = this.manager.getModules().map(module=>Object.assign(module));
-      await Promise.all(modules.map(module=>{
+      const modules = this.manager.getModules().map(module => Object.assign(module));
+      await Promise.all(modules.map(module => {
         module.setSession(this);
         this.modules.push(module)
         if (module.onStartSession) return module.onStartSession();

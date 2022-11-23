@@ -43,7 +43,7 @@ export function EXPORT(
   ) as object[];
   const result = {
     ...descriptor,
-    value: function(...params: unknown[]) {
+    value: function (...params: unknown[]) {
       if (ptypes.length !== params.length) throw new Error("Invalid number of arguments");
       const flag = ptypes.reduce((a, b, index) => {
         return a && isType(b, params[index]);
@@ -73,7 +73,7 @@ export interface ModuleMap {
   [key: string]: unknown[];
 }
 export type ImportModules = {
-  new (manager: Manager): Module;
+  new(manager: Manager): Module;
 }[];
 
 /**
@@ -112,7 +112,7 @@ export class Module<T extends ModuleMap = ModuleMap> {
     };
     return { ...defaultInfo, ...this.moduleInfo };
   }
-  public static getImportModules(){
+  public static getImportModules() {
     return Module.importModules;
   }
   /**
@@ -341,7 +341,7 @@ export class Module<T extends ModuleMap = ModuleMap> {
    * @memberof Module
    */
   public async getModule<T extends Module>(constructor: {
-    new (manager: Manager): T;
+    new(manager: Manager): T;
   }): Promise<T> {
     return this.isSession()
       ? this.getSession().getModule(constructor)
@@ -359,7 +359,7 @@ export class Module<T extends ModuleMap = ModuleMap> {
    * @memberof Module
    */
   public getSessionModule<T extends Module>(constructor: {
-    new (manager: Manager): T;
+    new(manager: Manager): T;
   }): T {
     if (!this.getSession()) throw new Error("セッション情報が存在しない");
     return this.getSession().getModule(constructor);
